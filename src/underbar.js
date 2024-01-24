@@ -170,10 +170,37 @@
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
-    if (!accumulator) {
-      accumulator = collection[0];
-    }
+    var copy;
+    var count ;
 
+    if(accumulator === undefined) {
+      copy = collection[0]
+      count = 1
+    } else {
+      copy = accumulator
+      count = 0
+    }
+if (Array.isArray(collection)) {
+ for (var i = count; i < collection.length; i++) {
+      copy = iterator(copy, collection[i])
+    }
+} else {
+  for (var key in collection) {
+    copy = iterator(copy, collection[key])
+}
+}
+    return copy
+
+  //   var copy = collection.slice();
+
+  //   if (accumulator === undefined) {
+  //     accumulator = copy[0];
+  //     copy.shift()
+  //   }
+  //   _.each(copy, function(item) {
+  //     accumulator = (iterator(accumulator, item))
+  // })
+  //   return accumulator;
 
     // if(Array.isArray(collection))
 
@@ -194,13 +221,41 @@
 
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
+
+
     // TIP: Try re-using reduce() here.
+    return _.reduce(collection, function(passes, item) {
+      if (!passes) {
+        return false;
+      }
+
+      if (!iterator) {
+        return _.identity(item)
+      }
+      return !!iterator(item);
+    }, true)
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
+
+    return _.reduce(collection, function(passes, item) {
+      if (passes) {
+        return true;
+      }
+
+      if (!iterator) {
+        return _.identity(item)
+      }
+      return !!iterator(item);
+    }, false)
+
+
     // TIP: There's a very clever way to re-use every() here.
+    // return !_.every(collection, function(item) {
+    //   return !iterator(item)
+    // })
   };
 
 
@@ -223,11 +278,25 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    _.each(arguments, function(argument) {
+      _.each(argument, function(value, key) {
+        obj[key] = value;
+      })
+    })
+    return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+    _.each(arguments, function(argument) {
+      _.each(argument, function(value, key) {
+        if (obj[key] === undefined) {
+        obj[key] = value;
+        }
+      })
+    })
+    return obj;
   };
 
 
@@ -271,7 +340,18 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
-  };
+    var obj = {};
+
+return function() {
+  if (obj[arguments] === undefined) {
+    obj[arguments] = func.apply(this, arguments)
+  }
+
+return obj[arguments]
+
+}
+  }
+
 
   // Delays a function for the given number of milliseconds, and then calls
   // it with the arguments supplied.
@@ -280,6 +360,15 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    var arr = []
+
+    for (var i = 2; i < arguments.length; i++) {
+      arr.push(arguments[i])
+    }
+    setTimeout(function() {
+      func.apply(this, arr)
+    }, wait)
+
   };
 
 
